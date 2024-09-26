@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Stopwatch</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        #displayBox {
+            width: 300px;
+            height: 100px;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background-color: white;
+            margin-bottom: 20px;
+        }
+        #controls {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="displayBox">Say something...</div>
+    <div id="controls">
+        <button id="startBtn">Start</button>
+        <button id="stopBtn">Stop</button>
+    </div>
+    <div id="timer">00:00:00</div>
+
+    <script>
+        let timerInterval;
+        let seconds = 0;
+        const displayBox = document.getElementById('displayBox');
+        const timerDisplay = document.getElementById('timer');
+        
+        // Speech Recognition
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+            const transcript = Array.from(event.results)
+                .map(result => result[0])
+                .map(result => result.transcript)
+                .join('');
+            displayBox.textContent = transcript;
+        };
+
+        recognition.onend = () => {
+            if (isListening) {
+                recognition.start();
+            }
+        };
+
+        let isListening = false;
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!isListening) {
+                recognition.start();
+                isListening = true;
+                startTimer();
+            }
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            if (isListening) {
+                recognition.stop();
+                isListening = false;
+                clearInterval(timerInterval);
+            }
+        });
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');
+                const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+                const secs = String(seconds % 60).padStart(2, '0');
+                timerDisplay.textContent = `${hours}:${minutes}:${secs}`;
+            }, 1000);
+        }
+    </script>
+
+</body>
+</html>
